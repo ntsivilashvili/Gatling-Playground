@@ -1,0 +1,22 @@
+# Maven build output
+/target/
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.iws
+out/
+
+# Gatling simulation results
+results/
+simulation.log
+
+# Compiled Java classes
+*.class
+
+# Temporary files
+*.tmp
+*.temp
+
+# macOS system files
+.DS_Store
