@@ -25,6 +25,27 @@ public class JsonPlaceholderApi {
     );
 
     /**
+     * Attempts to retrieve all posts, retrying up to 3 times if the request fails.
+     *
+     * This block wraps the GET /posts call inside a tryMax structure, allowing up to 3 retries
+     * in case of temporary failures (like timeouts or 5xx responses).
+     * A short pause of 1 second is added between retries to avoid overwhelming the server.
+     *
+     * Checks that the response status is 200 (OK).
+     *
+     * @return a ChainBuilder that performs the GET /posts request with retry logic
+     */
+    public static ChainBuilder getPostsWithRetry = tryMax(3).on(
+            exec(
+                    http("[GET] All Posts (with Retry)")
+                            .get("/posts")
+                            .check(status().is(200))
+            )
+                    .pause(1) // Pause 1 second between attempts
+                    .exitHereIfFailed() // exits the scenario early if all retries failed
+    );
+
+    /**
      * Retrieves a single post by its ID.
      *
      * Uses the "id" value stored in the Gatling session to build the URL.
