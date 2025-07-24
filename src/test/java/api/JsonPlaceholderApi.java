@@ -2,6 +2,9 @@ package api;
 
 import io.gatling.javaapi.core.ChainBuilder;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
@@ -61,6 +64,84 @@ public class JsonPlaceholderApi {
                             "}"))
                     .asJson()
                     .check(status().in(201, 200)) // placeholder returns 201
+                    .check(jsonPath("$.id").saveAs("newPostId"))
+    );
+
+    /**
+     * Creates a new post using a JSON payload loaded from a file,
+     * with Gatling EL placeholders processed (e.g., #{title}, #{body}, #{userId}).
+     *
+     * Use this when your payload contains dynamic variables that need to be replaced
+     * from the Gatling session during runtime.
+     *
+     * The JSON file should be located at: resources/data/posts.json
+     *
+     * Difference from Data Feeder:
+     * - Data feeders provide session variables (like title, body, userId).
+     * - ElFileBody uses those variables to dynamically fill placeholders in the JSON payload.
+     * - Feeder feeds data into the session; ElFileBody injects that data into the request body.
+     */
+    public static ChainBuilder createPostElFileBody = exec(
+            http("[POST] Create Post with ElFileBody")
+                    .post("/posts")
+                    .body(ElFileBody("data/posts.json")) // EL placeholders are resolved at runtime
+                    .asJson()
+                    .check(status().in(201, 200))
+                    .check(jsonPath("$.id").saveAs("newPostId"))
+    );
+
+    /**
+     * Creates a new post by sending a static JSON payload directly from a file,
+     * without any Gatling EL placeholder processing.
+     *
+     * Use this when you want to send the exact same payload every time,
+     * with no dynamic substitution.
+     *
+     * The JSON file should be located at: resources/data/posts.json
+     *
+     * Difference from Data Feeder:
+     * - No session data or dynamic variables are used here.
+     * - The request body is fixed and always identical.
+     * - Data feeders are not needed because there's no variable input.
+     */
+    public static ChainBuilder createPostRawFileBody = exec(
+            http("[POST] Create Post with RawFileBody")
+                    .post("/posts")
+                    .body(RawFileBody("data/posts.json")) // No EL processing, file content sent as-is
+                    .asJson()
+                    .check(status().in(201, 200))
+                    .check(jsonPath("$.id").saveAs("newPostId"))
+    );
+
+    /**
+     * Creates a new post by streaming the JSON payload from an InputStream.
+     *
+     * Use this when sending very large payloads that might not fit comfortably
+     * in memory, or when you want to control streaming.
+     *
+     * This method does NOT process Gatling EL placeholders;
+     * the payload is sent exactly as in the file.
+     *
+     * The JSON file path is relative or absolute in the code,
+     * e.g., "src/test/resources/data/posts.json"
+     *
+     * Difference from Data Feeder:
+     * - Similar to RawFileBody, it sends a fixed payload.
+     * - No dynamic data substitution from session variables.
+     * - Data feeders are unnecessary since no variable data is injected.
+     */
+    public static ChainBuilder createPostInputStreamBody = exec(
+            http("[POST] Create Post with InputStreamBody")
+                    .post("/posts")
+                    .body(InputStreamBody(session -> {
+                        try {
+                            return new FileInputStream("src/test/resources/data/posts.json");
+                        } catch (FileNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }))
+                    .asJson()
+                    .check(status().in(201, 200))
                     .check(jsonPath("$.id").saveAs("newPostId"))
     );
 
