@@ -76,5 +76,27 @@ public class JsonPlaceholderScenarios {
                     feed(DataFeeder.getJsonFeeder("posts.json").random())
                             .exec(JsonPlaceholderApi.createPost)
             );
+
+    /**
+     * Scenario demonstrating different user actions with weighted probabilities.
+     *
+     * Users randomly perform one of the following actions per iteration:
+     *  - 70% chance to create a new post
+     *  - 20% chance to update an existing post
+     *  - 10% chance to delete a post
+     *
+     * This simulates realistic user behavior with varied traffic patterns,
+     * useful for testing how the system handles different operations under load.
+     *
+     * Feeder:
+     *  - Uses randomized data from posts.json feeder to supply required fields.
+     */
+    public static ScenarioBuilder randomUserActions = scenario("Random User Actions with Probabilities")
+            .feed(DataFeeder.getJsonFeeder("posts.json").random())
+            .randomSwitch().on(
+                    percent(70.0).then(exec(JsonPlaceholderApi.createPost)),
+                    percent(20.0).then(exec(JsonPlaceholderApi.updatePost)),
+                    percent(10.0).then(exec(JsonPlaceholderApi.deletePost))
+            );
 }
 
