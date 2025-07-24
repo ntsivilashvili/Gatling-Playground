@@ -99,4 +99,3 @@ public class JsonPlaceholderScenarios {
                     percent(10.0).then(exec(JsonPlaceholderApi.deletePost))
             );
 }
-
